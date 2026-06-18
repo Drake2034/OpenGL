@@ -3,7 +3,7 @@
 #include <vector>
 #include <span>
 
-const char* vertexShaderSource =
+const char* vertex_shader_source =
 "                                                       \
 #version 330 core \n                                    \
 layout (location = 0) in vec3 aPos;\n                   \
@@ -12,7 +12,7 @@ void main(){\n                                          \
 }                                                       \
 \0";
 
-const char* fragmentShaderSource =
+const char* fragment_shader_source =
 "                                               \
 out vec4 FragColor;\n                           \
 void main(){\n                                  \
@@ -20,7 +20,7 @@ void main(){\n                                  \
 }                                               \
 \0";
 
-GLFWwindow* createWindow(const char* window_name, int width, int height){
+GLFWwindow* createWindow(const char* window_name, unsigned int width, unsigned int height){
     glfwWindowHint(GLFW_SAMPLES, 4); //4x antialiasing
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -53,24 +53,42 @@ GLFWwindow* createWindow(const char* window_name, int width, int height){
 }
 
 GLuint initShaderProgram(){
-    GLsizei count = 1;
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, count, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
+    GLsizei shader_program_count = 1;
+    GLuint vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    GLuint fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    
+    glShaderSource(
+        vertex_shader,
+        shader_program_count, 
+        &vertex_shader_source,
+        NULL
+    );
+    glShaderSource(
+        fragment_shader, 
+        shader_program_count, 
+        &fragment_shader_source, 
+        NULL
+    );
 
-    GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, count, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
+    glCompileShader(vertex_shader);
+    glCompileShader(fragment_shader);
+    
 
-    GLuint shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram (shaderProgram);
+    GLuint shader_program = glCreateProgram();
+    glAttachShader(shader_program, vertex_shader);
+    glAttachShader(shader_program, fragment_shader);
+    glLinkProgram (shader_program);
 
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	glDeleteShader(vertex_shader);
+	glDeleteShader(fragment_shader);
 
-    return shaderProgram;
+    return shader_program;
+}
+
+void cleanup(GLuint* VAO, GLuint* VBO, GLuint shader_program){
+    glDeleteBuffers(1, VBO);
+    glDeleteVertexArrays(1, VAO);
+    glDeleteProgram(shader_program);
 }
 
 void clearWindow(){

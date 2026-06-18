@@ -4,56 +4,66 @@
 #include <cmath>
 #include <vector>
 
-#include <methods.hpp>
+#include "./headers/methods.hpp"
 
 #define WIN_HEIGHT 1080
 #define WIN_WIDTH 1920
 
-int main(int argc, char* argv[]){
+int main(/* int argc, char* argv[] */){
     glfwInit();
 
+    std::vector<float> v_triangle = {
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 0.0f
+    };
+
     try{
-        GLFWwindow* window = createWindow("opengl babyyy", WIN_WIDTH, WIN_HEIGHT);
-        if(!window) throw std::runtime_error("could not initialize window");
-
-        if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-            throw std::runtime_error("glad loader failed")
-        ;
-
-        GLsizei vertexArrayID = 1;
-        GLsizei bufferID = 1;
-
-        GLuint VAO = initVAO(vertexArrayID);
-        GLuint VBO = initVBO(bufferID);
-
-        std::vector<vertex> v_triangle = {
-
-        };
         mesh triangle = mesh(v_triangle);
-        if(!triangle) throw std::runtime_error("could not initialize triangle");
+        if(!triangle.isInitialized()){
+            throw std::runtime_error("could not initialize mesh");
+        }
 
-        GLuint shaderProgram = initShaderProgram();
+        GLFWwindow* window = createWindow("opengl babyyy", WIN_WIDTH, WIN_HEIGHT);
+        if(!window){
+            throw std::runtime_error("could not initialize window");
+        }
+
+        if(!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+            glfwDestroyWindow(window);
+            throw std::runtime_error("glad loader failed");
+        }
+
+        GLuint shader_program = initShaderProgram();
+        if(!shader_program){
+            glfwDestroyWindow(window);
+            throw std::runtime_error("could not initialize shader program");
+        }
 
         while(!glfwWindowShouldClose(window)){
             glfwPollEvents();
             clearWindow();
 
-            glUseProgram(shaderProgram);
-            glBindVertexArray(VAO);
+            glUseProgram(shader_program);
 
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+            glBindVertexArray(triangle.VAO);
+            glDrawElements(
+                GL_TRIANGLES, 
+                triangle.vertex_count, 
+                GL_UNSIGNED_INT, 
+                (void*) 0 //byte offset: 1
+            );
+            glBindVertexArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
 
             handleInput(window);
             glfwSwapBuffers(window);
         }
 
-        glDeleteVertexArrays(vertexArrayID, &VAO);
-        glDeleteBuffers(bufferID, &VBO);
-        glDeleteProgram(shaderProgram);
-
+        cleanup();
         glfwDestroyWindow(window);
 
-    }catch(const std::runtime_error& e){
+    }catch(const std::exception& e){
         std::cout << "error: " << e.what() << '\n';
         glfwTerminate();
         return -1;

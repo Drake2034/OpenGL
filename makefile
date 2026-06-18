@@ -1,14 +1,15 @@
-CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++17
+CXX := g++
+CXXFLAGS = -Wall -Wextra -std=c++17 -I./libraries/include -I./libraries/include/glad -I./src/headers
+LDFLAGS = -lGL -lglfw
+
+SRC = src/main.cpp
 TARGET = ./bin/main
-OBJS = main.o functions.o
+LIBRARYFILES = -L./libraries/lib
 
-all: $(TARGET)
+main: $(SRC)
+	$(CXX) $(CXXFLAGS) $(SRC) $(LIBRARYFILES) -o $(TARGET) 
 
-$(TARGET): $(OBJS) $(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
+.PHONY: clean
 
-main.o: ./src/main.cpp 
-
-functions.o:
-
-clean: rm -f $(OBJS) $(TARGET)
+clean: 
+	rm -rf ./bin/*
